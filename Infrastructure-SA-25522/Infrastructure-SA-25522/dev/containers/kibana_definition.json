@@ -1,0 +1,26 @@
+[
+  {
+    "name"      : "kibana",
+    "image"     : "467609728767.dkr.ecr.us-east-1.amazonaws.com/kibana:latest",
+    "essential" : true,
+    "secrets" : [
+      {"valueFrom" : "/kibana/staging/ELASTICSEARCH_HOSTS","name" : "ELASTICSEARCH_HOSTS"},
+      {"valueFrom" : "/kibana/staging/ELASTICSEARCH_PASSWORD","name" : "ELASTICSEARCH_PASSWORD"},
+      {"valueFrom" : "/kibana/staging/ELASTICSEARCH_USERNAME","name" : "ELASTICSEARCH_USERNAME"}
+    ],
+    "portMappings" : [{
+        "protocol"      : "tcp",
+        "containerPort" : 5601,
+        "hostPort"      : 5601
+    }],
+    "logConfiguration" : {
+      "logDriver": "awslogs",
+      "options": {
+          "awslogs-group": "${ecs_cluster_name}",
+          "awslogs-region": "${region}",
+          "awslogs-create-group": "true",
+          "awslogs-stream-prefix": "/ecs/dev1/kibana"
+      }
+    }
+  }
+]

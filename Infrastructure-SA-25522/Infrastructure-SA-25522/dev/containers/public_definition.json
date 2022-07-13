@@ -1,0 +1,58 @@
+[
+  {
+  "name"      : "public-nginx",
+  "image"     : "467609728767.dkr.ecr.us-east-1.amazonaws.com/nginx:latest",
+  "essential" : true,
+  "portMappings" : [{
+    "protocol"      : "tcp",
+    "containerPort" : 80,
+    "hostPort"      : 8888
+  }],
+  "links": [
+    "public:app"
+  ],
+  "logConfiguration" : {
+    "logDriver": "awslogs",
+    "options": {
+        "awslogs-group": "${ecs_cluster_name}",
+        "awslogs-region": "${region}",
+        "awslogs-create-group": "true",
+        "awslogs-stream-prefix": "/ecs/dev1/public-nginx"
+    }
+  }
+  },
+  {
+    "name"      : "public",
+    "command"   : ["/app/dockerfiles/app/boot.sh"],
+    "image"     : "467609728767.dkr.ecr.us-east-1.amazonaws.com/app:latest",
+    "essential" : true,
+    "environment" : [
+      {"value" : "server","name" : "APP_FILE"},
+      {"value" : "public_pages","name" : "APP_MODULE"},
+      {"value" : "us-east-1","name" : "AWS_REGION"},
+      {"value" : "Fri Apr 1 00:46:52 UTC 2022","name" : "BUILD_DATE"},
+      {"value" : "public_pages","name" : "DATADOG_SERVICE_NAME"},
+      {"value" : "true","name" : "DATADOG_SERVICE_NAME"},
+      {"value" : "1","name" : "DD_TRACE_ENABLED"},
+      {"value" : "true","name" : "DOCKER_ENABLED"},
+      {"value" : "dev","name" : "ENV"},
+      {"value" : "info","name" : "GUNICORN_LOG_LEVEL"},
+      {"value" : "5000","name" : "PORT"},
+      {"value" : "/app","name" : "PYTHONPATH"}
+    ],
+    "portMappings" : [{
+      "protocol"      : "tcp",
+      "containerPort" : 5000,
+      "hostPort"      : 5000
+    }],
+    "logConfiguration" : {
+      "logDriver": "awslogs",
+      "options": {
+          "awslogs-group": "${ecs_cluster_name}",
+          "awslogs-region": "${region}",
+          "awslogs-create-group": "true",
+          "awslogs-stream-prefix": "/ecs/dev1/public"
+      }
+    }
+  }
+]

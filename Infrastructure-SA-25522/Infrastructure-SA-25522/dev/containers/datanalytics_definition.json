@@ -1,0 +1,28 @@
+[
+  {
+    "name"      : "data-analytics",
+    "image"     : "467609728767.dkr.ecr.us-east-1.amazonaws.com/user-management:prod-latest",
+    "entrypoint"   : ["gunicorn"],
+    "command" : ["-b", "0.0.0.0:8000","--forwarded-allow-ips", "['*']", "-c", "main/user_management/gunicorn/prod.py"],
+    "essential" : true,
+    "environment" : [
+      {"value" : "main.user_management.settings.prod","name" : "DJANGO_SETTINGS_MODULE"}
+    ],
+    "portMappings" : [{
+      "protocol"      : "tcp",
+      "containerPort" : 8000,
+      "hostPort"      : 8081
+    }],
+    "secrets" : [
+    ],
+    "logConfiguration" : {
+      "logDriver": "awslogs",
+      "options": {
+          "awslogs-group": "${ecs_cluster_name}",
+          "awslogs-region": "${region}",
+          "awslogs-create-group": "true",
+          "awslogs-stream-prefix": "/ecs/dev1/data-analytics"
+      }
+    }
+  }
+]

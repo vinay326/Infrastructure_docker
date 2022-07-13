@@ -1,0 +1,46 @@
+[
+  {
+    "name"      : "user-management",
+    "image"     : "467609728767.dkr.ecr.us-east-1.amazonaws.com/user-management:prod-latest",
+    "entrypoint"   : ["gunicorn"],
+    "command" : ["-b", "0.0.0.0:8000", "-c", "main/user_management/gunicorn/prod.py"],
+    "essential" : true,
+    "environment" : [
+      {"value" : "main.user_management.settings.prod","name" : "DJANGO_SETTINGS_MODULE"}
+    ],
+    "portMappings" : [{
+      "protocol"      : "tcp",
+      "containerPort" : 8000,
+      "hostPort"      : 8081
+    }],
+    "secrets" : [
+      {"valueFrom" : "/user_management/dev/AUTH0_AUTHORIZATION_EXTENSION_URL","name" : "AUTH0_AUTHORIZATION_EXTENSION_URL"},
+      {"valueFrom" : "/user_management/dev/AUTH0_CLIENT_ID","name" : "AUTH0_CLIENT_ID"},
+      {"valueFrom" : "/user_management/dev/AUTH0_CLIENT_SECRET","name" : "AUTH0_CLIENT_SECRET"},
+      {"valueFrom" : "/user_management/dev/AUTH0_DOMAIN","name" : "AUTH0_DOMAIN"},
+      {"valueFrom" : "/user_management/dev/AUTH0_MOCK_MODE","name" : "AUTH0_MOCK_MODE"},
+      {"valueFrom" : "/user_management/dev/UMG_API_KEY","name" : "UMG_API_KEY"},
+      {"valueFrom" : "/user_management/dev/UMG_AUTH0_IPS","name" : "UMG_AUTH0_IPS"},
+      {"valueFrom" : "/user_management/dev/UMG_CONSOLE_LOG_LEVEL","name" : "UMG_CONSOLE_LOG_LEVEL"},
+      {"valueFrom" : "/user_management/dev/UMG_SECRET_KEY","name" : "UMG_SECRET_KEY"},
+      {"valueFrom" : "/user_management/dev/UMG_HOST_NAME","name" : "UMG_HOST_NAME"},
+      {"valueFrom" : "/user_management/dev/UMG_ENVIRONMENT_NAME","name" : "UMG_ENVIRONMENT_NAME"},
+      {"valueFrom" : "/user_management/dev/UMG_UPDATE_USER_PERMISSIONS_ACTION_ID","name" : "UMG_UPDATE_USER_PERMISSIONS_ACTION_ID"},
+      {"valueFrom" : "/user_management/dev/UMG_ALLOWED_HOSTS","name" : "UMG_ALLOWED_HOSTS"},
+      {"valueFrom" : "/user_management/dev/POSTGRES_HOST","name" : "POSTGRES_HOST"},
+      {"valueFrom" : "/user_management/dev/POSTGRES_PORT","name" : "POSTGRES_PORT"},
+      {"valueFrom" : "/user_management/dev/POSTGRES_DB","name" : "POSTGRES_DB"},
+      {"valueFrom" : "/user_management/dev/POSTGRES_USER","name" : "POSTGRES_USER"},
+      {"valueFrom" : "/user_management/dev/POSTGRES_PASSWORD","name" : "POSTGRES_PASSWORD"}
+    ],
+    "logConfiguration" : {
+      "logDriver": "awslogs",
+      "options": {
+          "awslogs-group": "${ecs_cluster_name}",
+          "awslogs-region": "${region}",
+          "awslogs-create-group": "true",
+          "awslogs-stream-prefix": "/ecs/dev1/user-management"
+      }
+    }
+  }
+]

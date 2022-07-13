@@ -1,0 +1,227 @@
+version: 2.1 
+orbs: 
+  aws-ecr: circleci/aws-ecr@7.3.0
+  aws-cli: circleci/aws-cli@2.0.0
+parameters:
+  dev:
+    type: boolean
+    default: false
+  prod:
+    type: boolean
+    default: false
+  kibana:
+    type: boolean
+    default: false
+  run-them-all:
+    type: boolean
+    default: false
+
+jobs:
+  plan-prod:
+    working_directory: /tmp/project
+    docker:
+      - image: ubuntu:20.04
+    steps:    
+      - checkout
+      - run:
+          name: install requirements
+          command: |
+            sh packages.sh
+      - run:
+          name: terraform init & plan
+          working_directory: /tmp/project/n-virginia
+          command: | 
+            terraform init -input=false
+            terraform plan -input=false -out=n-virginia.tfplan
+      - store_artifacts:
+          path: /tmp/project/n-virginia/n-virginia.tfplan
+      - run:
+          name: terraform init & plan
+          working_directory: /tmp/project/canada
+          command: | 
+            terraform init -input=false
+            terraform plan -input=false -out=canada.tfplan
+      - store_artifacts:
+          path: /tmp/project/canada/canada.tfplan
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .
+  apply:
+    working_directory: /tmp/project
+    docker:
+    - image: ubuntu:20.04
+    steps:
+    - attach_workspace:
+        at: .
+    - run:
+          name: install requirements
+          command: |
+            sh packages.sh
+    - run:
+        working_directory: /tmp/project/n-virginia
+        name: terraform
+        command: |
+          terraform apply -input=false n-virginia.tfplan
+    - run:
+        working_directory: /tmp/project/canada
+        name: terraform
+        command: |
+          terraform apply -input=false canada.tfplan
+    - persist_to_workspace:
+        root: .
+        paths:
+          - .
+  destroy:
+    working_directory: /tmp/project
+    docker:
+    - image: ubuntu:20.04
+    steps:
+    - attach_workspace:
+        at: .
+    - run:
+          name: install requirements
+          command: |
+            sh packages.sh
+    - run:
+        working_directory: /tmp/project/n-virginia
+        name: terraform
+        command: |
+          terraform destroy -auto-approve
+    - run:
+        working_directory: /tmp/project/canada
+        name: terraform
+        command: |
+          terraform destroy -auto-approve 
+    - persist_to_workspace:
+        root: .
+        paths:
+          - .
+  plan-dev:
+    working_directory: /tmp/project
+    docker: 
+    - image: ubuntu:20.04
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+            name: install requirements
+            command: |
+              sh packages.sh
+      - run:
+          working_directory: /tmp/project/dev
+          name: terraform
+          command: |
+            terraform init -input=false -backend-config="access_key=$TF_VAR_AWS_DEV_ACCESS_KEY" -backend-config="secret_key=$TF_VAR_AWS_DEV_SECRET_KEY"
+            terraform plan -input=false -out=dev-env.tfplan
+      - store_artifacts:
+          path: /tmp/project/dev/dev-env.tfplan
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .     
+  apply-dev:
+    working_directory: /tmp/project
+    docker: 
+    - image: ubuntu:20.04
+    steps:
+    - attach_workspace:
+        at: .
+    - run:
+          name: install requirements
+          command: |
+            sh packages.sh
+    - run:
+        working_directory: /tmp/project/dev
+        name: terraform
+        command: |
+          terraform apply -input=false dev-env.tfplan
+    - persist_to_workspace:
+        root: .
+        paths:
+          - .
+  destroy-dev:
+    working_directory: /tmp/project
+    docker: 
+    - image: ubuntu:20.04
+    steps:
+    - attach_workspace:
+        at: .
+    - run:
+          name: install requirements
+          command: |
+            sh packages.sh
+    - run:
+        working_directory: /tmp/project/dev
+        name: terraform
+        command: |
+          terraform destroy -auto-approve
+    - persist_to_workspace:
+        root: .
+        paths:
+          - . 
+  build-and-push-image:
+    machine: true
+    steps:
+      - checkout
+      - aws-cli/setup:
+          override-installed: true
+      - aws-ecr/build-and-push-image:
+          account-url: DEV_AWS_ECR_ACCOUNT_URL
+          aws-access-key-id: TF_VAR_AWS_DEV_ACCESS_KEY
+          aws-secret-access-key: TF_VAR_AWS_DEV_SECRET_KEY
+          dockerfile: Dockerfile
+          path: docker-conf/kibana
+          region: DEV_N_VIRGINIA
+          repo: kibana  
+
+workflows:
+  prod-env:
+    when: << pipeline.parameters.prod >>
+    jobs:
+      - plan-prod
+      - hold-apply:
+          type: approval
+          requires:
+            - plan-prod
+          filters:
+            branches:
+              only: master
+      - apply:
+          requires:
+            - hold-apply
+          filters:
+            branches:
+              only: master
+      - hold-destroy:
+          type: approval
+          requires:
+            - apply
+      - destroy:
+          requires:
+            - hold-destroy
+  dev-env:
+    when: << pipeline.parameters.dev >>
+    jobs:
+      - plan-dev
+      - hold-apply:
+          type: approval
+          requires:
+            - plan-dev
+          filters:
+            branches:
+              only: master
+      - apply-dev:
+          requires:
+            - hold-apply
+          filters:
+            branches:
+              only: master
+  dev-ecr:
+    when: << pipeline.parameters.kibana >>
+    jobs:
+      - build-and-push-image:
+          filters:
+            branches:
+              only: master

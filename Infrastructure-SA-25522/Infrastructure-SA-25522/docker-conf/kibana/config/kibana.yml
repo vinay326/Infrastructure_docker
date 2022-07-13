@@ -1,0 +1,17 @@
+xpack.security.authc.providers: [saml]
+xpack.security.secureCookies: true
+xpack.security.sameSiteCookies: None
+server.xsrf.whitelist: [/api/security/v1/saml]
+xpack.security.authc.saml.realm: api-hostcompliance
+xpack.apm.enabled: false
+server.name: kibana
+server.host: 0.0.0.0
+server.basePath: /kibana
+server.rewriteBasePath: true
+server.keepaliveTimeout: 180000
+server.socketTimeout: 180000
+csp.rules:
+  - "script-src 'unsafe-eval' 'self'"
+  - "worker-src 'self'"
+  - "style-src 'unsafe-inline' 'self'"
+  - "frame-src https://*.hostcompliance.com/"

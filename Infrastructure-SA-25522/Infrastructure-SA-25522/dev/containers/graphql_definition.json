@@ -1,0 +1,49 @@
+[
+    {
+    "name"      : "graphql-nginx",
+    "image"     : "467609728767.dkr.ecr.us-east-1.amazonaws.com/graphql-nginx:latest",
+    "essential" : true,
+    "secrets" : [],
+    "portMappings" : [{
+      "protocol"      : "tcp",
+      "containerPort" : 80,
+      "hostPort"      : 8080
+    }],
+    "links": [
+      "graphql:app"
+    ],
+    "logConfiguration" : {
+      "logDriver": "awslogs",
+      "options": {
+          "awslogs-group": "${ecs_cluster_name}",
+          "awslogs-region": "${region}",
+          "awslogs-create-group": "true",
+          "awslogs-stream-prefix": "/ecs/dev1/graphql-nginx"
+      }
+    }
+    },
+    {
+      "name"      : "graphql",
+      "command"   : ["/app/scripts/boot.sh"],
+      "image"     : "467609728767.dkr.ecr.us-east-1.amazonaws.com/graphql:latest",
+      "essential" : true,
+      "environment" : [
+        {"name":"AWS_REGION","value":"us-east-1"},
+        {"name":"BUILD_DATE","value":"Fri Apr 1 00:46:52 UTC 2022"},
+        {"name":"DD_TRACE_ENABLED","value":"true"},
+        {"name":"ENV","value":"dev"},
+        {"name":"PYTHONPATH","value":"/app"},
+        {"name":"VERSION_INFO","value":"9a0bb9f18328ff2ebc467059efc784740a16e5be_12022"}
+      ],
+      "portMappings" : [],
+      "logConfiguration" : {
+        "logDriver": "awslogs",
+        "options": {
+            "awslogs-group": "${ecs_cluster_name}",
+            "awslogs-region": "${region}",
+            "awslogs-create-group": "true",
+            "awslogs-stream-prefix": "/ecs/dev1/graphql"
+        }
+      }
+    }
+]

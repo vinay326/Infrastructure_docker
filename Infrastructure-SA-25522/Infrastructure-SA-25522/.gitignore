@@ -1,0 +1,12 @@
+# Terraform stuff
+*tfstate
+*.terraform
+*.tfstate.backup
+*.tfbackup
+**/terraform.tfvars
+.terraform.lock.hcl
+# AWS Creds
+terraform/credentials.tf
+.idea
+
+**/.venv

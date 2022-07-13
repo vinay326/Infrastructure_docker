@@ -1,0 +1,26 @@
+.embPanel__titleText {
+    font-size: 21px;
+    font-weight: 400;
+    padding: 7px;
+}
+.mtrVis__container div:last-child {
+    font-size: 25px;
+}
+.visLegend__valueTitle {
+    font-size: 15px;
+}
+.visLegend__value {
+    max-width: auto;
+}
+.iframe_embedded .globalQueryBar {
+    display: none;
+}
+.visLib--legend-top .visLegend__list .visLegend__value, .visLib--legend-bottom .visLegend__list .visLegend__value {
+    max-width: 30% !important;
+}
+.euiButtonGroup.euiButtonGroup--s.euiButtonGroup--fullWidth {
+    display: none !important;
+}
+button[data-test-subj="embeddablePanelAction-CUSTOM_TIME_RANGE"] {
+    display: none;
+}
